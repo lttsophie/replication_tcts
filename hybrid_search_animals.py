@@ -101,7 +101,7 @@ def show_stimuli(name, pos):
 
 # creating readable names of targets
 target_names = map(lambda x: str(x) + '.jpg', target_animals)
-# using our functions to show target stimuli and making "space" key button as a flip to the experiment
+# using functions to show target stimuli and making "space" key button as a flip to the experiment
 target_positions = get_possible_target_positions()
 target_stimuli = zip(target_names, target_positions)
 for (n, pos) in target_stimuli:
@@ -188,10 +188,10 @@ def get_possible_trail_positions():
             positions.add(create_pos(x, y))
     return positions
 
-
+# we need to create [stim_list] for trail handler to to record the results of participant's the selection
 stim_list = []
 for (a, b, p) in iterations:
-    stim_list.append({"set_size": str(a) + str(b), "presence": p})
+    stim_list.append({"set_size": str(a) + "+" + str(b), "presence": p})
 
 trials = data.TrialHandler(stim_list, 1, method="sequential",
                            dataTypes=["time", "choice"],
@@ -206,7 +206,7 @@ window.flip()
 for trial in trials:
     p = trial["presence"]
     set_size = trial["set_size"]
-    a, b = list(str(set_size))
+    a, b = str(set_size).split("+")
     pics_on_screen = get_trail_pics(int(a), int(b), p)
     names = map(lambda x: str(x) + '.jpg', pics_on_screen)
     possible_positions = get_possible_trail_positions()
@@ -228,12 +228,12 @@ for trial in trials:
         trials.data.add("choice", "no choice")
     window.flip()
     event.clearEvents()
-
+# create an excel file with all information about participant + each trail
 excel = trials.saveAsExcel(fileName='exp ' + ok_data[0],
-                           # ...or an xlsx file (which supports sheets)
                            sheetName='rawData ' + str(choice_mem_set),
                            stimOut=['set_size', 'presence'],
                            dataOut=['time_raw', 'choice_raw'])
+
 
 message = visual.TextStim(window, text=u'Спасибо, что были с нами!')
 message.draw()
