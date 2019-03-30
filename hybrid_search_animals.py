@@ -7,7 +7,8 @@ import random
 
 from psychopy import core, visual, gui, data, event
 
-# the first window after running the experiment with empty fields for name and age of the participant
+# the first window after running the experiment with empty fields for name
+# and age of the participant
 dlg = gui.Dlg(title=u"Информация")
 dlg.addText(u'Об испытуемом:')
 dlg.addField(u'Фамилия:')
@@ -32,16 +33,22 @@ pics_dir = 'pictures'
 message = visual.TextStim(window, color=(0, 0, 0),
                           text=u'В данном эксперименте вам предстоит '
                                u'запомнить объекты, которые будут предъявлены'
-                               u'в начале эксперимента. Когда вы будете уверены,'
+                               u'в начале эксперимента. Когда вы будете '
+                               u'уверены,'
                                u'что запомнили все объекты, нажмите "ПРОБЕЛ"'
-                               u'для перехода к эксперименту. Вам будет показано'
+                               u'для перехода к эксперименту. Вам будет '
+                               u'показано'
                                u'некоторое количество объектов, среди которых '
                                u'могут быть запомненные вами объекты. На каждом'
-                               u'экране с объектами может быть только один запомненный '
-                               u'вами объект или ни одного. Если вы нашли объект,'
+                               u'экране с объектами может быть только один '
+                               u'запомненный '
+                               u'вами объект или ни одного. Если вы нашли '
+                               u'объект,'
                                u'который запомнили в начале эксперимента'
-                               u'нажмите "СТРЕЛКА ВПРАВО", если вы не нашли объект,'
-                               u'который запомнили в начале эксперимента, нажмите'
+                               u'нажмите "СТРЕЛКА ВПРАВО", если вы не нашли '
+                               u'объект,'
+                               u'который запомнили в начале эксперимента, '
+                               u'нажмите'
                                u'"СТРЕЛКА ВЛЕВО". Для перехода к эксперименту'
                                u'нажмите "ПРОБЕЛ".')
 message.draw()
@@ -113,16 +120,17 @@ def show_stimuli(name, pos):
 
 # creating readable names of targets
 target_names = map(lambda x: str(x) + '.jpg', target_animals)
-# using functions to show target stimuli and making "space" key button as a flip to the experiment
+# using functions to show target stimuli and making "space" key button as a
+# flip to the experiment
 target_positions = get_possible_target_positions()
 target_stimuli = zip(target_names, target_positions)
 for (n, pos) in target_stimuli:
     show_stimuli(n, pos)
 window.flip()
 
-
 # there is 8 permutations of showing destructors during the experiment
-# first column contains number of animal destructors which will appear on the screen
+# first column contains number of animal destructors which will appear on the
+# screen
 # second column contains number of non-target category destructors
 variants = [
     (4, 0),
@@ -134,32 +142,11 @@ variants = [
     (4, 8),
     (8, 8),
 ]
-# multiplying all variants of permutation on 64, cause each permutation contains 64 trails
-all_trials = 512
+# multiplying all variants of permutation on 64, cause each permutation
+# contains 64 trails
+all_trials = 8
 permutations = variants * (all_trials / len(variants))
 random.shuffle(permutations)
-
-
-# it is 50 % chance of presence target stimuli during the experiment
-# function creates [1, 0, 1, ...] whereas 1 == presence, 0 == absence
-def create_presence():
-    pres = list(itertools.repeat(0, all_trials / 2)) + list(itertools.repeat(1, all_trials / 2))
-    random.shuffle(pres)
-    return pres
-
-
-presence = create_presence()
-
-
-# making presence for each permutation
-def create_iterations():
-    for i in range(0, len(permutations)):
-        a, b = permutations[i]
-        permutation_presence = presence[i]  # 64 [1, 0...] for this permutation
-        yield (a, b, permutation_presence)
-
-
-iterations = list(create_iterations())
 
 
 # main function to create a list with pictures for one trail
@@ -168,7 +155,8 @@ def get_trail_pics(a, b, p):
     pics_on_screen = []
     target_stim_wo_ts = animals - target_animals
     all_possible_dest = target_stim_wo_ts.union(non_tar_cat)
-    if a == 0 or b == 0:  # we take into account the condition under which one of the values in permutation may be zero
+    if a == 0 or b == 0:  # we take into account the condition under which
+        # one of the values in permutation may be zero
         destr_animals = set(random.sample(target_stim_wo_ts, a))
         destr_non_target = set(random.sample(non_tar_cat, b))
         all_destr = destr_animals.union(destr_non_target)
@@ -178,11 +166,13 @@ def get_trail_pics(a, b, p):
         # choosing randomly target stimulus and add to the [pics_on_screen]
         ts = random.choice(list(target_animals))
         pics_on_screen.append(ts)
-        # choosing randomly destructors depending on the permutation with added space for target
+        # choosing randomly destructors depending on the permutation with
+        # added space for target
         destructors_animals = set(random.sample(all_destr, a + b - 1))
         pics_on_screen += destructors_animals
     else:
-        # choosing randomly destructors depending on the permutation without target
+        # choosing randomly destructors depending on the permutation without
+        # target
         destructors_animals = set(random.sample(all_destr, a + b))
         pics_on_screen += destructors_animals
     return pics_on_screen
@@ -200,15 +190,27 @@ def get_possible_trail_positions():
             positions.add(create_pos(x, y))
     return positions
 
-# we need to create [stim_list] for trail handler to to record the results of participant's the selection
-stim_list = []
-for (a, b, p) in iterations:
-    stim_list.append({"set_size": str(a) + "+" + str(b), "presence": p})
 
-trials = data.TrialHandler(stim_list, 1, method="sequential",
-                           dataTypes=["time", "choice"],
-                           extraInfo={"name": ok_data[0], "age": ok_data[1],
-                                      "mem_set": ok_data[2]})
+def create_trials():
+    # it is 50 % chance of presence target stimuli during the experiment
+    # function creates [1, 0, 1, ...] whereas 1 == presence, 0 == absence
+    pres = list(itertools.repeat(0, all_trials / 2)) + list(
+        itertools.repeat(1, all_trials / 2))
+    random.shuffle(pres)
+
+    stim_list = []
+    for i in range(0, len(permutations)):
+        a, nt = permutations[i]
+        stim_list.append(
+            {"animals": a, "non_target": nt, "presence": (pres[i])})
+
+    return data.TrialHandler(stim_list, 1, method="sequential",
+                             dataTypes=["time", "choice"],
+                             extraInfo={"name": ok_data[0], "age": ok_data[1],
+                                        "mem_set": ok_data[2]})
+
+
+trials = create_trials()
 
 event.waitKeys(keyList=["space"])
 window.flip()
@@ -217,9 +219,9 @@ window.flip()
 # each loop equals to one trail
 for trial in trials:
     p = trial["presence"]
-    set_size = trial["set_size"]
-    a, b = str(set_size).split("+")
-    pics_on_screen = get_trail_pics(int(a), int(b), p)
+    a = trial["animals"]
+    n = trial["non_target"]
+    pics_on_screen = get_trail_pics(a, n, p)
     names = map(lambda x: str(x) + '.jpg', pics_on_screen)
     possible_positions = get_possible_trail_positions()
     positions = random.sample(possible_positions, len(pics_on_screen))
@@ -243,9 +245,8 @@ for trial in trials:
 # create an excel file with all information about participant + each trail
 excel = trials.saveAsExcel(fileName='exp ' + ok_data[0],
                            sheetName='rawData ' + str(choice_mem_set),
-                           stimOut=['set_size', 'presence'],
+                           stimOut=['animals', 'non_target', 'presence'],
                            dataOut=['time_raw', 'choice_raw'])
-
 
 message = visual.TextStim(window, text=u'Спасибо, что были с нами!')
 message.draw()
